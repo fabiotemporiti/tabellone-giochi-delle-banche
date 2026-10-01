@@ -1,0 +1,651 @@
+<!doctype html>
+<!--
+  Tabellone della persona facilitatrice de «i Giochi delle Banche», versione 0.1
+  Copyright 2026 Fabio Temporiti
+  SPDX-License-Identifier: EUPL-1.2
+  I testi delle carte e i nomi delle banche appartengono a Fondazione Finanza Etica ed edizioni la meridiana.
+-->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>i Giochi delle Banche</title>
+<style>
+:root{
+  /* colori istituzionali Banca Etica: blu Pantone 295 #00386B, giallo Pantone 116 #FCD116, verde privati #72BF44 */
+  --carta:#00386B; --foglio:#0A4679; --testata:#002C55; --inchiostro:#FFFFFF; --tenue:#B9CCE0; --riga:#2D6497; --linea:#1A5389;
+  --giallo:#FCD116; --blu-scuro:#00263F; --hover:#15599A; --rosso:#E0453A; --rosso-testo:#FF9D92; --verde:#72BF44; --verde-testo:#A9E283; --arancio:#F7941D;
+  --titolo:"DIN 1451 Std","DIN Condensed","Bahnschrift","DIN Alternate","D-DIN Condensed","Roboto Condensed","Arial Narrow",sans-serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Ubuntu,Cantarell,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--carta);color:var(--inchiostro);font-family:var(--sans);font-size:17px;line-height:1.45}
+/* la pagina occupa sempre tutta la finestra: il tabellone si adatta quando la si allarga, restringe o mette a schermo intero */
+body{height:100vh;display:flex;flex-direction:column}
+.testata,.avviso{flex:none}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--giallo);outline-offset:2px}
+input[type=checkbox]{accent-color:var(--giallo);width:18px;height:18px}
+h1,h2,h3{font-family:var(--titolo);font-weight:600;line-height:1.15;margin:0}
+
+/* testata */
+.testata{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;padding:14px 20px;background:var(--testata);border-bottom:4px solid var(--giallo)}
+.testata h1{font-size:1.9rem;letter-spacing:.01em}
+.testata h1 small{display:block;font-family:var(--sans);font-size:.8rem;font-weight:400;color:var(--tenue);letter-spacing:0}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button{background:none;border:0;border-bottom:3px solid transparent;padding:8px 12px;font-weight:600;color:var(--tenue)}
+nav button[aria-current="page"]{color:var(--inchiostro);border-bottom-color:var(--giallo)}
+.schermo{margin-left:auto;padding:6px 12px;font-size:.9rem}
+.schermo.nascosto + .stato{margin-left:auto}
+.stato{font-size:.85rem;color:var(--tenue);display:flex;align-items:center;gap:6px}
+.stato::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--verde)}
+.stato.errore{color:var(--rosso-testo)}
+.stato.errore::before{background:var(--rosso)}
+
+.avviso{margin:12px 20px 0;padding:12px 16px;border-left:6px solid var(--rosso);background:#FDE8E6;color:var(--blu-scuro);border-radius:4px}
+.avviso.fine{border-color:var(--blu-scuro);background:var(--giallo);font-size:1.1rem}
+.nascosto{display:none!important}
+
+main{flex:1;min-height:0;overflow:auto;padding:clamp(10px,1.6vh,24px) clamp(12px,1.5vw,28px)}
+.vista{display:none}
+.vista.attiva{display:block}
+
+/* gioco: griglia + termometro */
+#v-gioco.attiva{height:100%;display:flex;flex-direction:column;gap:clamp(8px,1.2vh,16px)}
+.gioco{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:100%;flex:1;min-height:0}
+/* promemoria della fase del gioco, sopra il tabellone */
+.fase{flex:none;margin:0;padding:clamp(6px,1vh,12px) 14px;border-left:5px solid var(--giallo);background:var(--foglio);border-radius:6px;font-size:clamp(.9rem,.5vw + .8vh,1.5rem)}
+.fase b{color:var(--giallo)}
+.tavolo{background:var(--foglio);border:1px solid var(--riga);border-radius:8px;overflow:auto;height:100%}
+table{border-collapse:collapse;width:100%;height:100%}
+th,td{padding:0;text-align:center;border-bottom:1px solid var(--riga)}
+thead th{font-size:clamp(.8rem,.45vw + .55vh,1.25rem);font-weight:600;color:var(--tenue);padding:8px 4px;background:#08406F;position:sticky;top:0}
+thead th.turno-corrente{color:var(--giallo);box-shadow:inset 0 -3px var(--giallo)}
+th.famiglia{text-align:left;font-size:clamp(1rem,.8vw + 1vh,2.1rem);padding:6px 10px 6px 12px;white-space:nowrap;font-weight:600;position:sticky;left:0;background:var(--foglio);z-index:1}
+.chip{display:inline-block;width:14px;height:28px;border-radius:3px;margin-right:10px;vertical-align:middle;border:1px solid rgba(255,255,255,.45)}
+td.cella{min-width:clamp(40px,4.2vw,90px);border-left:1px solid var(--linea)}
+thead th.famiglia{font-size:clamp(.8rem,.45vw + .55vh,1.25rem)}
+/* le righe di imprevisti e punti restano basse: lo spazio in più va alle famiglie */
+tr.riga-carte,tr.riga-pqv{height:1px}
+td.cella select{width:100%;height:100%;min-height:44px;border:0;background:transparent;text-align:center;text-align-last:center;font-variant-numeric:tabular-nums;font-size:clamp(1rem,.85vw + 1.1vh,2.3rem);appearance:none;-webkit-appearance:none;padding:0 6px}
+td.cella select:hover{background:var(--hover)}
+td.cella select option{color:#17252F;background:#fff}
+td.cella select.vuota{color:#5F88B3}
+td.totale{font-weight:700;font-variant-numeric:tabular-nums;padding:0 clamp(6px,.8vw,16px);white-space:nowrap;font-size:clamp(1.05rem,.9vw + 1.1vh,2.4rem)}
+td.totale small{display:block;font-weight:400;font-size:.72rem;color:var(--tenue)}
+tr.riga-carte th,tr.riga-pqv th{text-align:left;padding:8px 10px 8px 12px;font-size:.85rem;color:var(--tenue);font-weight:600;position:sticky;left:0;background:var(--foglio)}
+tr.riga-carte td,tr.riga-pqv td{padding:6px 3px;border-left:1px solid var(--linea)}
+.imp{display:block;width:100%;min-height:clamp(36px,5.5vh,72px);font-size:clamp(.62rem,.42vw + .5vh,1.25rem)!important;padding:0 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:6px;border:1px dashed var(--riga);background:none;font-size:.8rem;color:var(--tenue)}
+.imp.neg{background:var(--rosso);border:0;color:#fff;font-weight:700}
+.imp.pos{background:var(--verde);border:0;color:var(--blu-scuro);font-weight:700}
+.pqv{font-variant-numeric:tabular-nums;font-weight:600;font-size:clamp(1rem,.7vw + .9vh,2rem)}
+.pqv.neg{color:var(--rosso-testo)} .pqv.pos{color:var(--verde-testo)}
+
+/* termometro */
+.termometro{background:var(--foglio);border:1px solid var(--riga);border-radius:8px;padding:clamp(10px,1.6vh,24px);text-align:center;display:flex;flex-direction:column;min-height:0}
+.termometro h2{font-size:clamp(1rem,.6vw + .9vh,1.9rem)}
+.valore{font-family:var(--titolo);font-size:clamp(3rem,3.5vw + 5vh,10rem);font-weight:700;line-height:1;margin:10px 0 2px;font-variant-numeric:tabular-nums}
+.partenza{font-size:clamp(.8rem,.45vw + .6vh,1.25rem);color:var(--tenue)}
+.tubo{margin:clamp(8px,1.4vh,20px) auto 0;width:clamp(34px,3vw,64px);flex:1;min-height:60px;border-radius:23px;background:#052F58;border:2px solid var(--riga);position:relative;overflow:hidden}
+.mercurio{position:absolute;left:0;right:0;bottom:0;background:var(--verde);transition:height .5s ease,background-color .5s}
+.bulbo{flex:none;width:clamp(50px,4.4vw,94px);height:clamp(50px,4.4vw,94px);border-radius:50%;margin:-14px auto 0;border:2px solid var(--riga);position:relative;z-index:1;transition:background-color .5s}
+.ultimo{margin-top:8px;font-size:clamp(.85rem,.5vw + .7vh,1.4rem);color:var(--tenue)}
+
+/* pulsanti */
+.azioni{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.btn{border:1px solid var(--riga);background:var(--foglio);border-radius:6px;padding:10px 16px;font-weight:600;color:var(--inchiostro)}
+.btn:hover{border-color:var(--giallo)}
+.btn.primario{background:var(--giallo);border-color:var(--giallo);color:var(--blu-scuro)}
+.btn.pericolo{color:var(--rosso-testo);border-color:#8C4A52}
+
+/* classifica */
+.colonne{display:grid;grid-template-columns:minmax(0,1fr) clamp(170px,16vw,300px) minmax(0,1.3fr);gap:clamp(12px,1.5vw,28px);align-items:stretch}
+.colonne .termometro{min-height:clamp(380px,62vh,900px)}
+.colonne2{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:clamp(12px,1.5vw,28px);margin-top:clamp(12px,1.5vw,28px)}
+.raccolta{width:100%;border-collapse:collapse;height:auto}
+.raccolta th,.raccolta td{padding:7px 8px;border-bottom:1px solid var(--linea);text-align:right;font-variant-numeric:tabular-nums}
+.raccolta th:first-child,.raccolta td:first-child{text-align:left}
+.raccolta thead th{font-size:.85rem;color:var(--tenue);font-weight:600;position:static;background:none}
+.domande{margin:0;padding-left:1.2em}
+.domande li{margin:0 0 8px}
+.nota{color:var(--tenue);font-size:.85rem;margin:10px 0 0}
+.per-turno{width:100%;table-layout:fixed;border-collapse:collapse;height:auto;margin-top:8px;font-variant-numeric:tabular-nums}
+.per-turno th,.per-turno td{padding:5px 2px;text-align:center;border-bottom:1px solid var(--linea);font-size:clamp(.8rem,.45vw + .55vh,1.2rem)}
+.per-turno th{color:var(--tenue);font-weight:600;position:static;background:none}
+.per-turno th:first-child{text-align:left;white-space:nowrap;width:4.5em}
+.imp.zero{background:var(--giallo);border:0;color:var(--blu-scuro);font-weight:700}
+.carta-turno{border-top:1px solid #D5DDE1;padding:4px 20px 12px}
+.carta-turno h3{font-size:1.15rem;margin:12px 0 6px}
+.carta-turno.neg h3{color:#B3261E} .carta-turno.pos h3{color:#2E7D1E}
+.carta-turno .frase-grande{padding:0 0 8px}
+.pannello{background:var(--foglio);border:1px solid var(--riga);border-radius:8px;padding:18px}
+.pannello h2{font-size:1.3rem;margin-bottom:12px}
+ol.podio{list-style:none;margin:0;padding:0}
+ol.podio li{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--riga);font-size:1.1rem}
+ol.podio .pos-n{font-family:var(--titolo);font-size:1.5rem;width:1.6em;color:var(--tenue)}
+ol.podio .euro{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums}
+.grafico svg{width:100%;height:auto;display:block}
+.uscite{margin:14px 0 0;padding:0;list-style:none;font-size:.92rem}
+.uscite li{padding:6px 0;border-bottom:1px solid var(--linea)}
+.uscite b{display:inline-block;min-width:4.5em}
+
+/* impostazioni */
+.impostazioni{max-width:760px}
+.fam-riga{display:flex;align-items:center;gap:10px;padding:6px 0}
+.fam-riga input[type=text]{flex:1;max-width:260px;padding:8px 10px;border:1px solid var(--riga);border-radius:6px;background:#052F58}
+.fam-riga label{display:flex;align-items:center;gap:6px;font-size:.9rem;color:var(--tenue)}
+.campo{display:flex;align-items:center;gap:10px;margin:14px 0}
+.campo input{width:110px;padding:8px 10px;border:1px solid var(--riga);border-radius:6px;background:#052F58}
+
+/* finestra carte */
+dialog{border:0;border-radius:10px;padding:0;background:#fff;color:#17252F;max-width:760px;width:calc(100% - 32px);box-shadow:0 20px 60px rgba(23,37,47,.35)}
+dialog::backdrop{background:rgba(0,20,40,.65)}
+dialog .btn{background:#fff;color:#17252F;border-color:#D5DDE1}
+dialog .btn:hover{border-color:#00386B}
+dialog .btn.pericolo{color:#B3261E;border-color:#E7B8B4}
+.dlg-testa{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #D5DDE1;position:sticky;top:0;background:#fff}
+.dlg-corpo{max-height:70vh;overflow:auto;padding:8px 20px 20px}
+.carta{display:block;width:100%;text-align:left;border:1px solid #D5DDE1;background:#fff;color:#17252F;border-radius:8px;padding:12px 14px;margin-top:10px;border-left:6px solid #5B6B75}
+.carta.neg{border-left-color:#C8322B} .carta.pos{border-left-color:#4E9A2A}
+.carta:hover{background:#E3EDF7}
+.carta strong{display:block;font-family:var(--titolo);font-size:1.15rem}
+.carta span{display:block;color:#5B6B75;font-size:.9rem;margin-top:3px}
+.carta.nessuna{border-left-color:#D5DDE1;font-weight:600}
+.frase-grande{font-family:var(--sans);font-size:1.35rem;line-height:1.45;padding:18px 20px}
+
+/* manuale */
+.manuale{background:#fff;color:#17252F;border:0;border-radius:8px;padding:28px 34px;max-width:900px;columns:2 380px;column-gap:36px;font-size:.95rem}
+.manuale h2{column-span:all;font-size:1.7rem;margin-bottom:4px}
+.manuale .sotto{column-span:all;color:#5B6B75;margin:0 0 14px}
+.manuale h3{font-size:1.08rem;margin:14px 0 4px;break-after:avoid}
+.manuale p,.manuale ul{margin:0 0 8px}
+.manuale ul{padding-left:1.1em}
+.manuale .chiuso{break-inside:avoid;border:2px solid #00386B;border-radius:8px;padding:10px 14px;margin:12px 0;background:#FFF6CC}
+.manuale .chiuso h3{margin-top:0}
+
+@media (max-width:860px){
+  body{height:auto;min-height:100vh}
+  main{overflow:visible}
+  #v-gioco.attiva,.tavolo,table{height:auto}
+  .gioco{height:auto;grid-template-rows:none}
+  .gioco,.colonne,.colonne2{grid-template-columns:1fr}
+  .colonne .termometro{min-height:0}
+  .termometro{order:-1;position:static;display:grid;grid-template-columns:1fr auto;align-items:center;text-align:left}
+  .tubo,.bulbo{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff;font-size:10pt}
+  .testata,.avviso,.azioni,dialog{display:none!important}
+  main{padding:0}
+  .vista{display:none!important}
+  #v-manuale{display:block!important}
+  .manuale{border:0;padding:0;max-width:none;font-size:9.3pt;column-gap:8mm}
+  .manuale h2{font-size:17pt}
+  .pannello{border:0;padding:0}
+}
+</style>
+</head>
+<body>
+<header class="testata">
+  <h1>i Giochi delle Banche<small>Tabellone della persona facilitatrice, versione 0.1</small></h1>
+  <nav aria-label="Sezioni">
+    <button data-vista="gioco" aria-current="page">Gioco</button>
+    <button data-vista="classifica">Classifica</button>
+    <button data-vista="impostazioni">Famiglie e partita</button>
+    <button data-vista="manuale">Manuale</button>
+  </nav>
+  <button id="schermo" class="btn schermo nascosto" data-azione="schermo">Schermo intero</button>
+  <div id="stato" class="stato" role="status">Pronto</div>
+</header>
+
+<div id="avviso-salvataggio" class="avviso nascosto" role="alert">
+  <strong>Questo browser non sta salvando la partita.</strong> Succede in una finestra privata o se il browser blocca i dati dei file aperti dal computer. Puoi giocare lo stesso: ogni tanto premi «Scarica copia di sicurezza» in «Famiglie e partita», oppure apri il file in una finestra normale di Firefox o Chrome.
+</div>
+<div id="avviso-fine" class="avviso fine nascosto" role="alert">
+  <strong>La qualità della vita è arrivata a zero.</strong> Secondo le regole il gioco finisce qui, anche se non sono stati giocati tutti i turni. Passate alla classifica e alla discussione.
+</div>
+
+<main>
+  <section id="v-gioco" class="vista attiva" aria-label="Gioco">
+    <p id="fase" class="fase" aria-live="polite"></p>
+    <div class="gioco">
+      <div class="tavolo"><table id="tabellone"></table></div>
+    </div>
+  </section>
+
+  <section id="v-classifica" class="vista" aria-label="Classifica">
+    <div class="colonne">
+      <div class="pannello">
+        <h2>Classifica degli interessi</h2>
+        <ol id="podio" class="podio"></ol>
+      </div>
+      <aside class="termometro" aria-live="polite">
+        <div>
+          <h2>Qualità della vita</h2>
+          <div id="pqv-valore" class="valore">100</div>
+          <div id="pqv-partenza" class="partenza">punti su 100 di partenza</div>
+          <div id="pqv-ultimo" class="ultimo"></div>
+        </div>
+        <div class="tubo" aria-hidden="true"><div id="mercurio" class="mercurio"></div></div>
+        <div id="bulbo" class="bulbo" aria-hidden="true"></div>
+      </aside>
+      <div class="pannello grafico">
+        <h2>Andamento della qualità della vita</h2>
+        <div id="grafico"></div>
+        <table class="per-turno" aria-label="Punti qualità della vita di ogni turno"><tbody id="per-turno"></tbody></table>
+        <ul id="uscite" class="uscite"></ul>
+      </div>
+    </div>
+    <div class="colonne2">
+      <div class="pannello">
+        <h2>Dove sono andati i soldi</h2>
+        <table class="raccolta">
+          <thead><tr><th scope="col">Banca</th><th scope="col">Investimenti</th><th scope="col">Raccolta</th></tr></thead>
+          <tbody id="raccolta"></tbody>
+        </table>
+        <p class="nota">Ogni investimento porta 100 € alla banca.</p>
+      </div>
+      <div class="pannello">
+        <h2>Domande per la discussione</h2>
+        <ol class="domande">
+          <li>Che legame c'è tra le banche scelte e la qualità della vita della comunità?</li>
+          <li>Si può trovare un equilibrio tra rendimento e qualità della vita?</li>
+          <li>I criteri con cui avete scelto la banca all'inizio sono bastati?</li>
+          <li>Quanto contano le informazioni per scegliere in modo responsabile?</li>
+          <li>Chi ha vinto: la famiglia che ha guadagnato di più o la comunità intera?</li>
+          <li>Come giudichereste una banca che dice con trasparenza dove investe?</li>
+          <li>Nella vita reale, cosa possiamo fare perché i risultati vadano a vantaggio di tutte e tutti?</li>
+        </ol>
+      </div>
+    </div>
+    <div class="azioni">
+      <button class="btn" data-azione="esporta">Scarica i risultati (.csv)</button>
+      <button class="btn pericolo" data-azione="chiudi">Scarica i risultati e chiudi la partita</button>
+    </div>
+  </section>
+
+  <section id="v-impostazioni" class="vista impostazioni" aria-label="Famiglie e partita">
+    <div class="pannello">
+      <h2>Famiglie in gioco</h2>
+      <p style="margin-top:0;color:var(--tenue)">Il kit prevede 5 famiglie. Attiva le altre se il gruppo è numeroso, e cambia i nomi se volete.</p>
+      <div id="elenco-famiglie"></div>
+      <div class="campo">
+        <label for="pqv-iniziale">Punti qualità della vita alla partenza</label>
+        <input id="pqv-iniziale" type="number" min="1" step="1">
+      </div>
+    </div>
+    <div class="azioni">
+      <button class="btn" data-azione="backup">Scarica copia di sicurezza</button>
+      <button class="btn" data-azione="ripristina">Riprendi da una copia</button>
+      <input id="file-copia" type="file" accept=".json,application/json" class="nascosto">
+      <button class="btn pericolo" data-azione="nuova">Nuova partita (cancella tutto)</button>
+    </div>
+  </section>
+
+  <section id="v-manuale" class="vista" aria-label="Manuale">
+    <article class="manuale">
+      <h2>Come si usa il tabellone</h2>
+      <p class="sotto">Una pagina per chi facilita «i Giochi delle Banche». Funziona senza internet, in qualsiasi browser.</p>
+
+      <h3>Prima di iniziare</h3>
+      <ul>
+        <li>Apri il file con un doppio clic. Si apre nel browser, non serve installare nulla.</li>
+        <li>In «Famiglie e partita» scegli quante famiglie giocano (di base 5) e, se vuoi, cambia i nomi. La qualità della vita parte da 100 punti: si può cambiare nella stessa pagina.</li>
+        <li>Se c'è ancora una partita vecchia, premi «Nuova partita».</li>
+        <li>Per proiettare premi «Schermo intero» in alto, oppure F11. Il tabellone si adatta da solo a qualsiasi dimensione della finestra.</li>
+      </ul>
+
+      <h3>A ogni turno</h3>
+      <ul>
+        <li>Quando una famiglia torna dalla banca, clicca la sua casella nella colonna del turno e scegli l'interesse scritto sulla scheda investimento.</li>
+        <li>Nella sezione «Classifica» il termometro della qualità della vita si aggiorna da solo: ogni investimento aggiunge o toglie punti.</li>
+        <li>Se sbagli, riclicca la casella e scegli il valore giusto, oppure «vuoto».</li>
+        <li>Sopra la tabella un promemoria ricorda cosa prevede il turno: quando le famiglie possono chiedere alle banche, gli spot, la strategia comune.</li>
+      </ul>
+
+      <h3>Gli imprevisti</h3>
+      <ul>
+        <li>Nella riga «Imprevisto», sotto le famiglie, clicca il riquadro del turno e scegli la carta pescata. In ogni voce, in grassetto, c'è il titolo stampato sulla carta, sotto la frase.</li>
+        <li>Nel tabellone compare «Imprevisto»: rosso se la carta toglie punti qualità della vita, verde se li aggiunge. Cliccandolo si rilegge la frase della carta.</li>
+        <li>Euro e punti della carta vengono calcolati da soli, per ogni famiglia, in base alla banca scelta in quel turno.</li>
+        <li>Più carte nello stesso turno? Clicca «Imprevisto» e scegli «Aggiungi un'altra carta». Carta sbagliata? Scegli «Togli questa carta».</li>
+      </ul>
+
+      <div class="chiuso">
+        <h3>Se il programma si chiude per sbaglio</h3>
+        <p>La partita si salva da sola a ogni scelta: in alto a destra vedi «Salvato alle…». Se il computer si spegne, si scarica o qualcuno chiude la finestra, <b>riapri lo stesso file con lo stesso browser</b>: ritrovi tutto com'era.</p>
+        <p>La partita non si ritrova se:</p>
+        <ul>
+          <li>il file viene aperto con un altro browser (per esempio prima Firefox, poi Chrome);</li>
+          <li>il file è stato spostato o rinominato durante la partita;</li>
+          <li>si usa una finestra privata o anonima: in quel caso compare un avviso rosso in alto.</li>
+        </ul>
+        <p>Per sicurezza, a metà partita premi «Scarica copia di sicurezza»: con «Riprendi da una copia» la ricarichi anche su un altro computer.</p>
+      </div>
+
+      <h3>Fine della partita</h3>
+      <ul>
+        <li>Se la qualità della vita arriva a zero, compare un avviso: secondo le regole il gioco finisce lì.</li>
+        <li>In «Classifica» trovi l'ordine delle famiglie, l'andamento della qualità della vita, le carte uscite, dove sono andati i soldi banca per banca e alcune domande per la discussione.</li>
+        <li>«Scarica i risultati e chiudi la partita» salva i risultati in un file .csv e poi svuota il tabellone per la prossima volta.</li>
+      </ul>
+
+      <p class="sotto" style="margin-top:10px">Tabellone versione 0.1, di Fabio Temporiti. Codice EUPL 1.2, testi CC BY-SA 4.0.</p>
+    </article>
+    <div class="azioni">
+      <button class="btn primario" data-azione="stampa-manuale">Stampa il manuale</button>
+    </div>
+  </section>
+</main>
+
+<dialog id="dlg-carte" aria-labelledby="dlg-carte-titolo">
+  <div class="dlg-testa"><h2 id="dlg-carte-titolo">Quale carta è stata pescata?</h2><button class="btn" data-chiudi>Chiudi</button></div>
+  <div id="lista-carte" class="dlg-corpo"></div>
+</dialog>
+<dialog id="dlg-frase" aria-labelledby="dlg-frase-titolo">
+  <div class="dlg-testa"><h2 id="dlg-frase-titolo"></h2><button class="btn" data-chiudi>Chiudi</button></div>
+  <div id="carte-del-turno" class="dlg-corpo" style="padding:0"></div>
+  <div class="azioni" style="padding:12px 20px 20px;margin:0">
+    <button class="btn" data-azione="aggiungi-carta">Aggiungi un'altra carta</button>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+var DATI = __DATI__;
+var TURNI = 10;
+var CHIAVE = "giochi-delle-banche-partita-v1";
+// Tabella di conversione del kit: interesse (euro) > punti qualità della vita
+var CONVERSIONE = {10:-10, 9:-9, 8:-8, 7:-7, 6:-7, 5:6, 4:5, 3:4, 2:3};
+var FAMIGLIE_BASE = [
+  ["Rossi","#C8322B"],["Bianchi","#FFFFFF"],["Verdi","#2E8B3E"],["Gialli","#F2C230"],
+  ["Neri","#1B1B1B"],["Viola","#6B3FA0"],["Azzurri","#5DADE2"],["Marroni","#8B5A2B"]];
+
+function partitaNuova(){
+  return {versione:1, pqvIniziale:100,
+    famiglie:FAMIGLIE_BASE.map(function(f,i){return {nome:f[0], colore:f[1], attiva:i<5};}),
+    investimenti:{}, carte:{}, aggiornata:null};
+}
+
+// ---- salvataggio ----
+var archivio = (function(){
+  try { var k="__prova__"; localStorage.setItem(k,"1"); var ok=localStorage.getItem(k)==="1"; localStorage.removeItem(k); return ok ? localStorage : null; }
+  catch(e){ return null; }
+})();
+function carica(){
+  if(!archivio) return partitaNuova();
+  try { var s=archivio.getItem(CHIAVE); return s ? JSON.parse(s) : partitaNuova(); }
+  catch(e){ return partitaNuova(); }
+}
+var P = carica();
+function salva(){
+  P.aggiornata = new Date().toISOString();
+  var st = document.getElementById("stato");
+  if(!archivio){ st.textContent="Non salvato"; st.className="stato errore"; return; }
+  try {
+    archivio.setItem(CHIAVE, JSON.stringify(P));
+    st.textContent = "Salvato alle " + new Date().toLocaleTimeString("it-IT");
+    st.className = "stato";
+  } catch(e){ st.textContent="Salvataggio non riuscito"; st.className="stato errore"; }
+}
+
+// ---- calcoli ----
+function inv(f,t){ var v=P.investimenti[f+"-"+t]; return v===undefined ? null : v; }
+// carte pescate nel turno t (anche più d'una); le copie salvate con la versione precedente hanno un numero solo
+function carte(t){ var c=P.carte[t]; if(c===undefined) return []; return (Array.isArray(c)?c:[c]).map(function(i){ return DATI.carte[i]; }); }
+function pqvCarte(t){ return carte(t).reduce(function(s,c){ return s+c.pqv; },0); }
+function classeSegno(n){ return n<0 ? "neg" : (n>0 ? "pos" : "zero"); }
+function indiceBanca(euro){ for(var i=0;i<DATI.banche.length;i++){ if(DATI.banche[i].euro===euro) return i; } return -1; }
+function attive(){ var a=[]; P.famiglie.forEach(function(f,i){ if(f.attiva) a.push(i); }); return a; }
+function effettoCarta(t,f){ var e=inv(f,t); if(e===null) return 0; return carte(t).reduce(function(s,c){ return s+(c.euro[indiceBanca(e)]||0); },0); }
+function pqvTurno(t){
+  var tot=0, usato=false;
+  attive().forEach(function(f){ var e=inv(f,t); if(e!==null){ tot+=CONVERSIONE[e]; usato=true; } });
+  if(carte(t).length){ tot+=pqvCarte(t); usato=true; }
+  return usato ? tot : null;
+}
+function progressivo(){ var v=P.pqvIniziale, s=[]; for(var t=1;t<=TURNI;t++){ var d=pqvTurno(t); if(d!==null) v+=d; s.push({turno:t, delta:d, valore:v}); } return s; }
+function totaleFamiglia(f){ var s=0, imp=0; for(var t=1;t<=TURNI;t++){ var e=inv(f,t); if(e!==null){ s+=e; imp+=effettoCarta(t,f); } } return {interessi:s, imprevisti:imp, totale:s+imp}; }
+function ultimoTurnoGiocato(){ var u=0; for(var t=1;t<=TURNI;t++){ if(pqvTurno(t)!==null) u=t; } return u; }
+function segno(n){ return n>0 ? "+"+n : String(n); }
+
+// ---- tabellone ----
+function disegnaTabellone(){
+  var corrente = Math.min(ultimoTurnoGiocato()+1, TURNI);
+  var h = "<thead><tr><th class='famiglia' scope='col'>Famiglia</th>";
+  for(var t=1;t<=TURNI;t++) h += "<th scope='col'"+(t===corrente?" class='turno-corrente'":"")+">Turno "+t+"</th>";
+  h += "<th scope='col'>Totale</th></tr></thead><tbody>";
+  attive().forEach(function(f){
+    var fam=P.famiglie[f];
+    h += "<tr><th class='famiglia' scope='row'><span class='chip' style='background:"+fam.colore+"'></span>"+esc(fam.nome)+"</th>";
+    for(var t=1;t<=TURNI;t++){
+      var e=inv(f,t);
+      h += "<td class='cella'><select aria-label='"+esc(fam.nome)+", turno "+t+"' data-f='"+f+"' data-t='"+t+"' class='"+(e===null?"vuota":"")+"'>";
+      h += "<option value=''>·</option>";
+      DATI.banche.forEach(function(b){ h += "<option value='"+b.euro+"'"+(e===b.euro?" selected":"")+">"+b.euro+" €</option>"; });
+      h += "</select></td>";
+    }
+    var tf=totaleFamiglia(f);
+    h += "<td class='totale'>"+tf.totale+" €"+(tf.imprevisti? "<small>imprevisti "+segno(tf.imprevisti)+" €</small>":"")+"</td></tr>";
+  });
+  h += "<tr class='riga-carte'><th scope='row'>Imprevisto</th>";
+  for(var t2=1;t2<=TURNI;t2++){
+    var cc=carte(t2);
+    if(cc.length) h += "<td><button class='imp "+classeSegno(pqvCarte(t2))+"' data-carta-turno='"+t2+"' aria-label='Imprevisti del turno "+t2+": "+esc(cc.map(function(c){return c.titolo;}).join(", "))+"' title='"+esc(cc.map(function(c){return c.frase;}).join("\n\n"))+"'>"+(cc.length>1 ? cc.length+" imprevisti" : "Imprevisto")+"</button></td>";
+    else h += "<td><button class='imp' data-carta-turno='"+t2+"' aria-label='Scegli la carta imprevisto del turno "+t2+"'>+</button></td>";
+  }
+  h += "<td></td></tr></tbody>";
+  document.getElementById("tabellone").innerHTML = h;
+}
+
+function disegnaTermometro(){
+  var s=progressivo(), u=ultimoTurnoGiocato(), v = u ? s[u-1].valore : P.pqvIniziale;
+  document.getElementById("pqv-valore").textContent = v;
+  document.getElementById("pqv-partenza").textContent = "punti su "+P.pqvIniziale+" di partenza";
+  document.getElementById("pqv-ultimo").textContent = u ? "Turno "+u+": "+segno(s[u-1].delta)+" punti" : "Nessun turno giocato";
+  var frazione = Math.max(0, Math.min(1, v/P.pqvIniziale));
+  var colore = frazione>0.5 ? "var(--verde)" : (frazione>0.25 ? "var(--arancio)" : "var(--rosso)");
+  var m=document.getElementById("mercurio"); m.style.height=(frazione*100)+"%"; m.style.background=colore;
+  document.getElementById("bulbo").style.background=colore;
+  document.getElementById("pqv-valore").style.color = colore;
+  var finita = s.some(function(x){ return x.delta!==null && x.valore<=0; });
+  document.getElementById("avviso-fine").classList.toggle("nascosto", !finita);
+}
+
+function disegnaClassifica(){
+  var lista = attive().map(function(f){ return {f:f, t:totaleFamiglia(f)}; }).sort(function(a,b){ return b.t.totale-a.t.totale; });
+  document.getElementById("podio").innerHTML = lista.map(function(x,i){
+    var fam=P.famiglie[x.f];
+    return "<li><span class='pos-n'>"+(i+1)+"</span><span class='chip' style='background:"+fam.colore+"'></span>"+esc(fam.nome)+"<span class='euro'>"+x.t.totale+" €</span></li>";
+  }).join("");
+  // grafico
+  var s=progressivo(), W=560, H=260, pad=34, maxV=P.pqvIniziale;
+  s.forEach(function(x){ if(x.valore>maxV) maxV=x.valore; });
+  var minV=Math.min(0, Math.min.apply(null, s.map(function(x){return x.valore;})));
+  function X(i){ return pad + i*(W-pad-10)/TURNI; }
+  function Y(v){ return 10 + (maxV-v)*(H-pad-10)/(maxV-minV||1); }
+  var punti=[[0,P.pqvIniziale]].concat(s.filter(function(x){return x.turno<=ultimoTurnoGiocato();}).map(function(x){return [x.turno,x.valore];}));
+  var g="<svg viewBox='0 0 "+W+" "+H+"' role='img' aria-label='Andamento dei punti qualità della vita per turno'>";
+  g+="<line x1='"+pad+"' y1='"+Y(0)+"' x2='"+(W-10)+"' y2='"+Y(0)+"' stroke='#FF9D92' stroke-dasharray='4 4'/>";
+  g+="<line x1='"+pad+"' y1='"+Y(P.pqvIniziale)+"' x2='"+(W-10)+"' y2='"+Y(P.pqvIniziale)+"' stroke='#2D6497'/>";
+  g+="<text x='4' y='"+(Y(P.pqvIniziale)+4)+"' font-size='12' fill='#B9CCE0'>"+P.pqvIniziale+"</text><text x='4' y='"+(Y(0)+4)+"' font-size='12' fill='#FF9D92'>0</text>";
+  for(var t=0;t<=TURNI;t++) g+="<text x='"+X(t)+"' y='"+(H-8)+"' font-size='12' text-anchor='middle' fill='#B9CCE0'>"+t+"</text>";
+  if(punti.length>1) g+="<polyline fill='none' stroke='#FCD116' stroke-width='3' points='"+punti.map(function(p){return X(p[0])+","+Y(p[1]);}).join(" ")+"'/>";
+  punti.forEach(function(p){ g+="<circle cx='"+X(p[0])+"' cy='"+Y(p[1])+"' r='4.5' fill='#FCD116'/>"; });
+  for(var t2=1;t2<=TURNI;t2++){ if(carte(t2).length && t2<=ultimoTurnoGiocato()){ var sp=pqvCarte(t2); g+="<rect x='"+(X(t2)-9)+"' y='"+(H-pad+2)+"' width='18' height='8' rx='2' fill='"+(sp<0?"#E0453A":(sp>0?"#72BF44":"#FCD116"))+"'/>"; } }
+  document.getElementById("grafico").innerHTML = g+"</svg>";
+  // punti qualità della vita di ogni turno (investimenti e imprevisti insieme)
+  var riga1="<tr><th scope='row'>Turno</th>", riga2="<tr><th scope='row'>Punti</th>";
+  s.forEach(function(x){ riga1+="<th scope='col'>"+x.turno+"</th>"; riga2+="<td class='pqv "+(x.delta===null||x.delta===0?"":(x.delta<0?"neg":"pos"))+"'>"+(x.delta===null?"":segno(x.delta))+"</td>"; });
+  document.getElementById("per-turno").innerHTML = riga1+"</tr>"+riga2+"</tr>";
+  var u=[]; for(var t3=1;t3<=TURNI;t3++){ carte(t3).forEach(function(c3){ u.push("<li><b>Turno "+t3+"</b>"+esc(c3.titolo)+"</li>"); }); }
+  document.getElementById("uscite").innerHTML = u.length ? u.join("") : "<li>Nessuna carta imprevisto pescata.</li>";
+}
+
+function disegnaImpostazioni(){
+  document.getElementById("elenco-famiglie").innerHTML = P.famiglie.map(function(f,i){
+    return "<div class='fam-riga'><span class='chip' style='background:"+f.colore+"'></span><input type='text' data-nome='"+i+"' value='"+esc(f.nome)+"' aria-label='Nome famiglia "+(i+1)+"'><label><input type='checkbox' data-attiva='"+i+"'"+(f.attiva?" checked":"")+"> in gioco</label></div>";
+  }).join("");
+  document.getElementById("pqv-iniziale").value = P.pqvIniziale;
+}
+
+// raccolta per banca: quante famiglie hanno investito, interessi pagati e punti qualità della vita generati
+function raccolta(){
+  return DATI.banche.map(function(b){
+    var n=0, pqv=0;
+    attive().forEach(function(f){ for(var t=1;t<=TURNI;t++){ if(inv(f,t)===b.euro){ n++; pqv+=CONVERSIONE[b.euro]; } } });
+    return {nome:b.nome, n:n, interessi:n*b.euro, pqv:pqv};
+  });
+}
+function disegnaRaccolta(){
+  // in ordine alfabetico: l'ordine per interesse rivelerebbe i rendimenti delle banche
+  document.getElementById("raccolta").innerHTML = raccolta().slice().sort(function(x,y){ return x.nome.localeCompare(y.nome,"it"); }).map(function(b){
+    return "<tr><td>"+esc(b.nome)+"</td><td>"+b.n+"</td><td>"+(b.n*100)+" €</td></tr>";
+  }).join("");
+}
+// promemoria delle regole del kit per il turno da giocare
+function disegnaFase(){
+  var t=Math.min(ultimoTurnoGiocato()+1, TURNI), s=progressivo(), u=ultimoTurnoGiocato();
+  var v = u ? s[u-1].valore : P.pqvIniziale, testo;
+  if(t<=2) testo="le famiglie scelgono la banca senza parlarsi tra loro e senza informazioni sui prodotti.";
+  else if(t===3) testo="da ora le famiglie possono chiedere informazioni alle banche in cui hanno già investito. Tra famiglie ancora niente scambi.";
+  else if(t===4) testo="prima di iniziare, ogni banca presenta il suo spot, senza dire prodotto né rendimento. Si può fare anche al turno 5.";
+  else if(t===5) testo="se non li avete fatti, è il momento degli spot delle banche. Da questo turno o dal prossimo le famiglie possono confrontarsi e concordare una strategia comune.";
+  else testo="le famiglie possono confrontarsi tra loro e concordare una strategia comune.";
+  if(t<5 && v<=P.pqvIniziale*0.25) testo+=" La qualità della vita è bassa: si può anticipare il confronto tra le famiglie.";
+  document.getElementById("fase").innerHTML="<b>Turno "+t+":</b> "+esc(testo);
+}
+function tutto(){ disegnaTabellone(); disegnaTermometro(); disegnaClassifica(); disegnaRaccolta(); disegnaFase(); }
+function esc(s){ return String(s).replace(/[&<>'"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]; }); }
+
+// ---- carte ----
+var turnoCarta = null;
+function apriSceltaCarta(t){
+  turnoCarta=t;
+  var h="<button class='carta nessuna' data-scegli='-1'>Nessun imprevisto in questo turno</button>";
+  DATI.carte.forEach(function(c,i){ h+="<button class='carta "+(c.pqv<0?"neg":"pos")+"' data-scegli='"+i+"'><strong>"+esc(c.titolo)+"</strong><span>"+esc(c.frase)+"</span></button>"; });
+  document.getElementById("lista-carte").innerHTML=h;
+  document.getElementById("dlg-carte-titolo").textContent="Turno "+t+": quale carta è stata pescata?";
+  apri("dlg-carte");
+}
+function mostraFrase(t){
+  turnoCarta=t; var cc=carte(t);
+  document.getElementById("dlg-frase-titolo").textContent = cc.length>1 ? "Turno "+t+": "+cc.length+" imprevisti" : "Turno "+t+": imprevisto";
+  document.getElementById("carte-del-turno").innerHTML = cc.map(function(c,k){
+    return "<div class='carta-turno "+(c.pqv<0?"neg":"pos")+"'><h3>"+esc(c.titolo)+"</h3><p class='frase-grande'>"+esc(c.frase)+"</p><button class='btn pericolo' data-togli='"+k+"'>Togli questa carta</button></div>";
+  }).join("");
+  apri("dlg-frase");
+}
+function elencoCarte(t){ var c=P.carte[t]; return c===undefined ? [] : (Array.isArray(c)?c.slice():[c]); }
+function apri(id){ var d=document.getElementById(id); if(d.showModal) d.showModal(); else d.setAttribute("open",""); }
+function chiudi(d){ if(d.close) d.close(); else d.removeAttribute("open"); }
+
+// ---- file ----
+function scarica(nome, testo, tipo){
+  var b=new Blob([testo],{type:tipo}), a=document.createElement("a");
+  a.href=URL.createObjectURL(b); a.download=nome; document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+function oggi(){ var d=new Date(); return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); }
+function csv(){
+  var r=[], q=function(v){ return '"'+String(v).replace(/"/g,'""')+'"'; };
+  var intest=["Famiglia"]; for(var t=1;t<=TURNI;t++) intest.push("Turno "+t); intest.push("Interessi","Imprevisti","Totale");
+  r.push(intest.map(q).join(";"));
+  attive().forEach(function(f){ var row=[P.famiglie[f].nome]; for(var t=1;t<=TURNI;t++){ var e=inv(f,t); row.push(e===null?"":e); } var tf=totaleFamiglia(f); row.push(tf.interessi,tf.imprevisti,tf.totale); r.push(row.map(q).join(";")); });
+  r.push("");
+  r.push(["Turno","Carta imprevisto","Punti qualità della vita del turno","Punti qualità della vita progressivi"].map(q).join(";"));
+  progressivo().forEach(function(x){ var cc=carte(x.turno); r.push([x.turno, cc.map(function(c){ return c.titolo+": "+c.frase; }).join(" / "), x.delta===null?"":x.delta, x.delta===null?"":x.valore].map(q).join(";")); });
+  r.push("");
+  r.push(["Banca","Investimenti","Raccolta (euro)","Interessi pagati (euro)","Punti qualità della vita"].map(q).join(";"));
+  raccolta().forEach(function(b){ r.push([b.nome,b.n,b.n*100,b.interessi,b.pqv].map(q).join(";")); });
+  return "﻿"+r.join("\r\n");
+}
+function azzera(){ P=partitaNuova(); salva(); disegnaImpostazioni(); tutto(); }
+
+// ---- eventi ----
+document.addEventListener("change", function(ev){
+  var el=ev.target;
+  if(el.dataset.f!==undefined){
+    var k=el.dataset.f+"-"+el.dataset.t;
+    if(el.value==="") delete P.investimenti[k]; else P.investimenti[k]=parseInt(el.value,10);
+    salva(); tutto();
+  } else if(el.dataset.attiva!==undefined){
+    P.famiglie[+el.dataset.attiva].attiva=el.checked; salva(); tutto();
+  } else if(el.id==="pqv-iniziale"){
+    var v=parseInt(el.value,10); if(v>0){ P.pqvIniziale=v; salva(); tutto(); }
+  } else if(el.id==="file-copia" && el.files[0]){
+    var lettore=new FileReader();
+    lettore.onload=function(){
+      try { var p=JSON.parse(lettore.result); if(!p.famiglie||!p.investimenti) throw new Error();
+        if(confirm("Sostituire la partita attuale con quella della copia?")){ P=p; salva(); disegnaImpostazioni(); tutto(); } }
+      catch(e){ alert("Il file scelto non è una copia di sicurezza di questo tabellone."); }
+      el.value="";
+    };
+    lettore.readAsText(el.files[0]);
+  }
+});
+document.addEventListener("input", function(ev){
+  var el=ev.target;
+  if(el.dataset.nome!==undefined){ P.famiglie[+el.dataset.nome].nome=el.value||("Famiglia "+(+el.dataset.nome+1)); salva(); disegnaTabellone(); disegnaClassifica(); }
+});
+document.addEventListener("click", function(ev){
+  var el=ev.target.closest("button"); if(!el) return;
+  if(el.dataset.vista){
+    document.querySelectorAll("nav button").forEach(function(b){ b.removeAttribute("aria-current"); });
+    el.setAttribute("aria-current","page");
+    document.querySelectorAll(".vista").forEach(function(v){ v.classList.remove("attiva"); });
+    document.getElementById("v-"+el.dataset.vista).classList.add("attiva");
+    if(el.dataset.vista==="classifica") disegnaClassifica();
+    return;
+  }
+  if(el.dataset.cartaTurno){ var t=+el.dataset.cartaTurno; if(carte(t).length) mostraFrase(t); else apriSceltaCarta(t); return; }
+  if(el.dataset.scegli!==undefined){
+    var i=+el.dataset.scegli;
+    if(i<0) delete P.carte[turnoCarta]; else { var l=elencoCarte(turnoCarta); l.push(i); P.carte[turnoCarta]=l; }
+    chiudi(document.getElementById("dlg-carte")); salva(); tutto(); return;
+  }
+  if(el.dataset.togli!==undefined){
+    var l2=elencoCarte(turnoCarta); l2.splice(+el.dataset.togli,1);
+    if(l2.length) P.carte[turnoCarta]=l2; else delete P.carte[turnoCarta];
+    salva(); tutto();
+    if(l2.length) mostraFrase(turnoCarta); else chiudi(document.getElementById("dlg-frase"));
+    return;
+  }
+  if(el.hasAttribute("data-chiudi")){ chiudi(el.closest("dialog")); return; }
+  switch(el.dataset.azione){
+    case "aggiungi-carta": chiudi(document.getElementById("dlg-frase")); apriSceltaCarta(turnoCarta); break;
+    case "esporta": scarica("giochi-delle-banche-risultati-"+oggi()+".csv", csv(), "text/csv;charset=utf-8"); break;
+    case "stampa-manuale": document.body.classList.add("stampa-manuale"); window.print(); break;
+    case "chiudi":
+      if(confirm("Scarico i risultati e poi svuoto il tabellone per la prossima partita. Procedo?")){
+        scarica("giochi-delle-banche-risultati-"+oggi()+".csv", csv(), "text/csv;charset=utf-8");
+        setTimeout(azzera, 500);
+      } break;
+    case "nuova": if(confirm("Cancellare tutti i dati della partita? Non si possono recuperare.")) azzera(); break;
+    case "schermo":
+      if(document.fullscreenElement||document.webkitFullscreenElement){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }
+      else { var r=document.documentElement; (r.requestFullscreen||r.webkitRequestFullscreen).call(r); }
+      break;
+    case "backup": scarica("giochi-delle-banche-copia-"+oggi()+".json", JSON.stringify(P,null,1), "application/json"); break;
+    case "ripristina": document.getElementById("file-copia").click(); break;
+  }
+});
+// Schermo intero: il pulsante compare solo dove il browser lo permette (non su iPhone)
+(function(){
+  var r=document.documentElement, b=document.getElementById("schermo");
+  if(!(r.requestFullscreen||r.webkitRequestFullscreen)) return;
+  b.classList.remove("nascosto");
+  function aggiorna(){ b.textContent=(document.fullscreenElement||document.webkitFullscreenElement) ? "Esci da schermo intero" : "Schermo intero"; }
+  document.addEventListener("fullscreenchange", aggiorna); document.addEventListener("webkitfullscreenchange", aggiorna);
+})();
+window.addEventListener("afterprint", function(){ document.body.classList.remove("stampa-manuale"); });
+
+if(!archivio) document.getElementById("avviso-salvataggio").classList.remove("nascosto");
+else if(P.aggiornata) document.getElementById("stato").textContent = "Partita ripresa (salvata alle "+new Date(P.aggiornata).toLocaleTimeString("it-IT")+")";
+disegnaImpostazioni(); tutto();
+</script>
+</body>
+</html>

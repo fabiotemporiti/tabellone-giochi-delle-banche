@@ -1,0 +1,382 @@
+{
+"carte": [
+{
+"titolo": "Azioni di azionariato critico in aziende del settore petrolifero",
+"tipo": "Finanziario",
+"frase": "Alcune organizzazioni della società civile intervengono in occasione delle assemblee degli azionisti di aziende del settore petrolifero portando all’attenzione dei consigli di amministrazione i problemi ambientali in cui le imprese sono coinvolte. Le banche che investono nel settore petrolifero riducono gli interessi a causa dell’aumento dei costi che le aziende devono sostenere per la mitigazione degli effetti ambientali negativi.",
+"pqv": 5,
+"euro": [
+0,
+0,
+0,
+-3,
+0,
+0,
+0,
+0,
+0
+]
+},
+{
+"titolo": "Scoppio di una bolla finanziaria",
+"tipo": "Finanziario",
+"frase": "La domanda e il prezzo delle energie rinnovabili crescono a livelli e con ritmi che non sono giustificati dai dati che caratterizzano l’attività aziendale. Scoppia la bolla finanziaria, penalizzando il settore delle rinnovabili, con effetto domino nel sistema finanziario.",
+"pqv": -4,
+"euro": [
+-2,
+-2,
+-2,
+-2,
+-2,
+-2,
+-2,
+-2,
+-2
+]
+},
+{
+"titolo": "Fallimento di una banca e bail out",
+"tipo": "Finanziario",
+"frase": "Una gestione poco prudente ha messo in ginocchio una banca non presente nel territorio. Per evitare un effetto domino sull’intero sistema finanziario, il governo interviene con un piano di bail-out, aumentando gli oneri a carico delle banche.",
+"pqv": -2,
+"euro": [
+-1,
+-1,
+-1,
+-1,
+-1,
+-1,
+-1,
+-1,
+-1
+]
+},
+{
+"titolo": "Diminuzione tassi",
+"tipo": "Finanziario",
+"frase": "La banca centrale ha annunciato una sorprendente riduzione dei tassi di interesse per stimolare l’economia. Il valore delle tue azioni aumenta.",
+"pqv": 3,
+"euro": [
+3,
+3,
+3,
+3,
+3,
+3,
+3,
+3,
+0
+]
+},
+{
+"titolo": "Crescita inflazione",
+"tipo": "Finanziario",
+"frase": "L’inflazione ha raggiunto livelli inaspettatamente alti, diminuendo il valore del denaro. Le aziende vedono erosi i loro profitti e di conseguenza le banche riducono gli interessi ai loro clienti.",
+"pqv": -5,
+"euro": [
+-2,
+-2,
+-2,
+-2,
+-2,
+-2,
+-2,
+-2,
+-2
+]
+},
+{
+"titolo": "Cooperative",
+"tipo": "Finanziario",
+"frase": "La Consob decide che le domande di affidamento devono essere corredate da certificazioni di garanzia di terzi. L’aggravio del costo delle pratiche incide notevolmente sul microcredito.",
+"pqv": -2,
+"euro": [
+0,
+0,
+0,
+0,
+0,
+0,
+0,
+0,
+-1
+]
+},
+{
+"titolo": "Riqualificazione territoriale",
+"tipo": "Ambientale",
+"frase": "Un grande progetto di riqualificazione urbana è stato annunciato nella regione in cui operano le banche. Questo progetto prevede la ristrutturazione di aree urbane, nuove costruzioni e miglioramenti infrastrutturali, influenzando il mercato immobiliare e il tessuto economico locale.",
+"pqv": 10,
+"euro": [
+0,
+0,
+0,
+0,
+2,
+2,
+2,
+2,
+2
+]
+},
+{
+"titolo": "Mitigazione inquinamento",
+"tipo": "Ambientale",
+"frase": "Il governo ha lanciato un ambizioso progetto per ridurre l’inquinamento, finanziato da un incremento della tassazione.",
+"pqv": 10,
+"euro": [
+-1,
+-1,
+-1,
+-1,
+-1,
+-1,
+-1,
+-1,
+-1
+]
+},
+{
+"titolo": "Mitigazione inquinamento",
+"tipo": "Ambientale",
+"frase": "Un’innovazione tecnologica ha introdotto nuove soluzioni per rendere il mining di criptovalute più ecologico ed efficiente.",
+"pqv": 3,
+"euro": [
+0,
+0,
+3,
+0,
+0,
+0,
+0,
+0,
+0
+]
+},
+{
+"titolo": "Mitigazione inquinamento",
+"tipo": "Ambientale",
+"frase": "Un recente e autorevole studio ha rivelato che l’impatto energetico del mining di criptovalute è molto più alto di quanto precedentemente stimato. Questa scoperta ha scatenato preoccupazioni ambientali e ha influenzato negativamente la percezione pubblica delle criptovalute.",
+"pqv": -5,
+"euro": [
+0,
+0,
+-4,
+0,
+0,
+0,
+0,
+0,
+0
+]
+},
+{
+"titolo": "Criminalità, armi",
+"tipo": "Sociale",
+"frase": "Un’ondata improvvisa di criminalità ha colpito la città, influenzando diverse aree dell’economia e del settore bancario.",
+"pqv": -10,
+"euro": [
+3,
+0,
+0,
+0,
+0,
+0,
+0,
+0,
+0
+]
+},
+{
+"titolo": "Infrastrutture",
+"tipo": "Sociale",
+"frase": "Lo stato ha annunciato una nuova politica che dà priorità agli investimenti nelle infrastrutture pubbliche, come trasporti, energia e comunicazioni.",
+"pqv": 10,
+"euro": [
+0,
+0,
+0,
+2,
+0,
+4,
+0,
+0,
+0
+]
+},
+{
+"titolo": "Agevolazioni sul microcredito",
+"tipo": "Sociale",
+"frase": "Lo stato ha deciso di promuovere attivamente il microcredito per supportare le piccole imprese e i cittadini a basso reddito. Questa iniziativa include incentivi fiscali per le banche che offrono microcrediti.",
+"pqv": 10,
+"euro": [
+0,
+0,
+0,
+0,
+0,
+0,
+0,
+0,
+4
+]
+},
+{
+"titolo": "Tassonomia europea",
+"tipo": "Sociale",
+"frase": "L’Unione Europea ha aggiornato la sua tassonomia per gli investimenti sostenibili, stabilendo criteri più severi. Ora, solo gli investimenti che soddisfano specifici standard etici e ambientali sono considerati sostenibili.",
+"pqv": 10,
+"euro": [
+-5,
+-5,
+-5,
+-5,
+-5,
+3,
+3,
+3,
+3
+]
+},
+{
+"titolo": "Armi",
+"tipo": "Sociale",
+"frase": "Un movimento globale di attivisti e investitori responsabili sta esercitando una forte pressione sulle istituzioni finanziarie per ridurre o eliminare gli investimenti nel settore delle armi. Questa tendenza etica sta influenzando il mercato e la reputazione delle banche.",
+"pqv": 4,
+"euro": [
+-4,
+0,
+0,
+0,
+0,
+0,
+0,
+0,
+0
+]
+},
+{
+"titolo": "Uguaglianza di genere",
+"tipo": "Sociale",
+"frase": "È stata lanciata una campagna globale, di alfabetizzazione finanziaria mirata alle donne, al fine di promuovere l’uguaglianza di genere nell’accesso alle risorse finanziarie e nelle competenze di gestione finanziaria. Questo intervento permette aprire nuovi mercati e creare opportunità di crescita, oltre a promuovere l’inclusione sociale e l’uguaglianza di genere.",
+"pqv": 5,
+"euro": [
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1
+]
+},
+{
+"titolo": "Donne migranti",
+"tipo": "Sociale",
+"frase": "Una rete di associazioni internazionali e Ong ha lanciato un’iniziativa globale per supportare l’inclusione finanziaria e sociale delle donne migranti. Questo programma mira a ridurre la povertà e a promuovere l’uguaglianza attraverso l’accesso ai servizi bancari e finanziari.",
+"pqv": 5,
+"euro": [
+0,
+0,
+0,
+0,
+0,
+0,
+2,
+2,
+2
+]
+},
+{
+"titolo": "Lotta all’evasione fiscale",
+"tipo": "Politico",
+"frase": "Un migliore coordinamento tra le banche nazionali ha permesso di intensificare gli sforzi per combattere l'evasione fiscale. Sono state introdotte nuove regole e controlli più rigorosi sulle transazioni finanziarie per assicurare la conformità fiscale.",
+"pqv": 5,
+"euro": [
+0,
+-4,
+0,
+0,
+0,
+0,
+0,
+0,
+0
+]
+},
+{
+"titolo": "Tassa sulle transazioni",
+"tipo": "Politico",
+"frase": "La Banca Centrale ha introdotto una nuova misura globale, applicando una tassazione dello 0,10% su tutte le transazioni bancarie. Questo cambiamento mira a stabilizzare i mercati finanziari.",
+"pqv": 3,
+"euro": [
+-1,
+-1,
+-1,
+-1,
+-1,
+-1,
+-1,
+-1,
+-1
+]
+},
+{
+"titolo": "Energie rinnovabili e fossili",
+"tipo": "Politico",
+"frase": "Organismi internazionali hanno annunciato un impegno concertato per accelerare la transizione verso fonti di energia rinnovabile. Questo movimento globale prevede una penalità per il settore petrolifero e una premialità per quello delle energie rinnovabili.",
+"pqv": 5,
+"euro": [
+0,
+0,
+0,
+-3,
+0,
+4,
+0,
+0,
+0
+]
+}
+],
+"banche": [
+{
+"nome": "Punto Risparmio",
+"euro": 10
+},
+{
+"nome": "International Bank",
+"euro": 9
+},
+{
+"nome": "Bit Bank",
+"euro": 8
+},
+{
+"nome": "Bank Invest",
+"euro": 7
+},
+{
+"nome": "Banca Nazionale",
+"euro": 6
+},
+{
+"nome": "Cassa del Lavoro",
+"euro": 5
+},
+{
+"nome": "Banca Prospera",
+"euro": 4
+},
+{
+"nome": "Credito Sociale",
+"euro": 3
+},
+{
+"nome": "Banca Noi",
+"euro": 2
+}
+]
+}
