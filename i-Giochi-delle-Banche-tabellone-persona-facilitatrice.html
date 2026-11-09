@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-  Tabellone della persona facilitatrice de «i Giochi delle Banche», versione 0.1
+  Tabellone della persona facilitatrice de «i Giochi delle Banche», versione 0.2
   Copyright 2026 Fabio Temporiti
   SPDX-License-Identifier: EUPL-1.2
   I testi delle carte e i nomi delle banche appartengono a Fondazione Finanza Etica ed edizioni la meridiana.
@@ -101,14 +101,22 @@ tr.riga-carte td,tr.riga-pqv td{padding:6px 3px;border-left:1px solid var(--line
 
 /* classifica */
 .colonne{display:grid;grid-template-columns:minmax(0,1fr) clamp(170px,16vw,300px) minmax(0,1.3fr);gap:clamp(12px,1.5vw,28px);align-items:stretch}
-.colonne .termometro{min-height:clamp(380px,62vh,900px)}
-.colonne2{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:clamp(12px,1.5vw,28px);margin-top:clamp(12px,1.5vw,28px)}
-.raccolta{width:100%;border-collapse:collapse;height:auto}
-.raccolta th,.raccolta td{padding:7px 8px;border-bottom:1px solid var(--linea);text-align:right;font-variant-numeric:tabular-nums}
-.raccolta th:first-child,.raccolta td:first-child{text-align:left}
-.raccolta thead th{font-size:.85rem;color:var(--tenue);font-weight:600;position:static;background:none}
+.colonne .termometro{min-height:clamp(340px,52vh,800px)}
+/* dove sono andati i soldi: a tutta larghezza sotto i tre riquadri, banche in colonna come i turni */
+.soldi{margin-top:clamp(12px,1.5vw,28px)}
+.soldi h2{margin-bottom:4px}
+.scorre{overflow-x:auto}
+.raccolta{min-width:640px}
+.raccolta th:first-child{width:7.5em}
+.raccolta thead th,.raccolta tr:first-child th{color:var(--inchiostro);white-space:normal}
+.raccolta tr:first-child th:first-child{color:var(--tenue)}
 .domande{margin:0;padding-left:1.2em}
 .domande li{margin:0 0 8px}
+/* vista Discussione: domande grandi, leggibili anche proiettate */
+.discussione{max-width:1100px}
+.pannello.discussione h2{font-size:clamp(1.3rem,.8vw + 1.2vh,2.4rem)}
+.discussione .domande{font-size:clamp(1.1rem,.7vw + 1.3vh,2.2rem)}
+.discussione .domande li{margin:0 0 .7em}
 .nota{color:var(--tenue);font-size:.85rem;margin:10px 0 0}
 .per-turno{width:100%;table-layout:fixed;border-collapse:collapse;height:auto;margin-top:8px;font-variant-numeric:tabular-nums}
 .per-turno th,.per-turno td{padding:5px 2px;text-align:center;border-bottom:1px solid var(--linea);font-size:clamp(.8rem,.45vw + .55vh,1.2rem)}
@@ -169,7 +177,7 @@ dialog .btn.pericolo{color:#B3261E;border-color:#E7B8B4}
   main{overflow:visible}
   #v-gioco.attiva,.tavolo,table{height:auto}
   .gioco{height:auto;grid-template-rows:none}
-  .gioco,.colonne,.colonne2{grid-template-columns:1fr}
+  .gioco,.colonne{grid-template-columns:1fr}
   .colonne .termometro{min-height:0}
   .termometro{order:-1;position:static;display:grid;grid-template-columns:1fr auto;align-items:center;text-align:left}
   .tubo,.bulbo{display:none}
@@ -190,10 +198,11 @@ dialog .btn.pericolo{color:#B3261E;border-color:#E7B8B4}
 </head>
 <body>
 <header class="testata">
-  <h1>i Giochi delle Banche<small>Tabellone della persona facilitatrice, versione 0.1</small></h1>
+  <h1>i Giochi delle Banche<small>Tabellone della persona facilitatrice, versione 0.2</small></h1>
   <nav aria-label="Sezioni">
     <button data-vista="gioco" aria-current="page">Gioco</button>
     <button data-vista="classifica">Classifica</button>
+    <button data-vista="discussione">Discussione</button>
     <button data-vista="impostazioni">Famiglie e partita</button>
     <button data-vista="manuale">Manuale</button>
   </nav>
@@ -239,16 +248,19 @@ dialog .btn.pericolo{color:#B3261E;border-color:#E7B8B4}
         <ul id="uscite" class="uscite"></ul>
       </div>
     </div>
-    <div class="colonne2">
-      <div class="pannello">
-        <h2>Dove sono andati i soldi</h2>
-        <table class="raccolta">
-          <thead><tr><th scope="col">Banca</th><th scope="col">Investimenti</th><th scope="col">Raccolta</th></tr></thead>
-          <tbody id="raccolta"></tbody>
-        </table>
-        <p class="nota">Ogni investimento porta 100 € alla banca.</p>
-      </div>
-      <div class="pannello">
+    <div class="pannello soldi">
+      <h2>Dove sono andati i soldi</h2>
+      <div class="scorre"><table class="per-turno raccolta" aria-label="Investimenti e raccolta di ogni banca"><tbody id="raccolta"></tbody></table></div>
+      <p class="nota">Ogni investimento porta 100 € alla banca. Banche in ordine alfabetico.</p>
+    </div>
+    <div class="azioni">
+      <button class="btn" data-azione="esporta">Scarica i risultati (.csv)</button>
+      <button class="btn pericolo" data-azione="chiudi">Scarica i risultati e chiudi la partita</button>
+    </div>
+  </section>
+
+  <section id="v-discussione" class="vista" aria-label="Discussione">
+      <div class="pannello discussione">
         <h2>Domande per la discussione</h2>
         <ol class="domande">
           <li>Che legame c'è tra le banche scelte e la qualità della vita della comunità?</li>
@@ -260,11 +272,6 @@ dialog .btn.pericolo{color:#B3261E;border-color:#E7B8B4}
           <li>Nella vita reale, cosa possiamo fare perché i risultati vadano a vantaggio di tutte e tutti?</li>
         </ol>
       </div>
-    </div>
-    <div class="azioni">
-      <button class="btn" data-azione="esporta">Scarica i risultati (.csv)</button>
-      <button class="btn pericolo" data-azione="chiudi">Scarica i risultati e chiudi la partita</button>
-    </div>
   </section>
 
   <section id="v-impostazioni" class="vista impostazioni" aria-label="Famiglie e partita">
@@ -329,11 +336,12 @@ dialog .btn.pericolo{color:#B3261E;border-color:#E7B8B4}
       <h3>Fine della partita</h3>
       <ul>
         <li>Se la qualità della vita arriva a zero, compare un avviso: secondo le regole il gioco finisce lì.</li>
-        <li>In «Classifica» trovi l'ordine delle famiglie, l'andamento della qualità della vita, le carte uscite, dove sono andati i soldi banca per banca e alcune domande per la discussione.</li>
+        <li>In «Classifica» trovi l'ordine delle famiglie, l'andamento della qualità della vita, le carte uscite e dove sono andati i soldi banca per banca.</li>
+        <li>In «Discussione» trovi le domande da proiettare per il confronto finale.</li>
         <li>«Scarica i risultati e chiudi la partita» salva i risultati in un file .csv e poi svuota il tabellone per la prossima volta.</li>
       </ul>
 
-      <p class="sotto" style="margin-top:10px">Tabellone versione 0.1, di Fabio Temporiti. Codice EUPL 1.2, testi CC BY-SA 4.0.</p>
+      <p class="sotto" style="margin-top:10px">Tabellone versione 0.2, di Fabio Temporiti. Codice EUPL 1.2, testi CC BY-SA 4.0.</p>
     </article>
     <div class="azioni">
       <button class="btn primario" data-azione="stampa-manuale">Stampa il manuale</button>
@@ -502,9 +510,10 @@ function raccolta(){
 }
 function disegnaRaccolta(){
   // in ordine alfabetico: l'ordine per interesse rivelerebbe i rendimenti delle banche
-  document.getElementById("raccolta").innerHTML = raccolta().slice().sort(function(x,y){ return x.nome.localeCompare(y.nome,"it"); }).map(function(b){
-    return "<tr><td>"+esc(b.nome)+"</td><td>"+b.n+"</td><td>"+(b.n*100)+" €</td></tr>";
-  }).join("");
+  var bb=raccolta().slice().sort(function(x,y){ return x.nome.localeCompare(y.nome,"it"); });
+  var r1="<tr><th scope='row'>Banca</th>", r2="<tr><th scope='row'>Investimenti</th>", r3="<tr><th scope='row'>Raccolta</th>";
+  bb.forEach(function(b){ r1+="<th scope='col'>"+esc(b.nome)+"</th>"; r2+="<td>"+b.n+"</td>"; r3+="<td>"+(b.n*100)+" €</td>"; });
+  document.getElementById("raccolta").innerHTML = r1+"</tr>"+r2+"</tr>"+r3+"</tr>";
 }
 // promemoria delle regole del kit per il turno da giocare
 function disegnaFase(){
