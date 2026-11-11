@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-  Tabellone della persona facilitatrice de «i Giochi delle Banche», versione 0.2
+  Tabellone della persona facilitatrice de «i Giochi delle Banche», versione 0.3
   Copyright 2026 Fabio Temporiti
   SPDX-License-Identifier: EUPL-1.2
   I testi delle carte e i nomi delle banche appartengono a Fondazione Finanza Etica ed edizioni la meridiana.
@@ -117,7 +117,11 @@ tr.riga-carte td,tr.riga-pqv td{padding:6px 3px;border-left:1px solid var(--line
 .pannello.discussione h2{font-size:clamp(1.3rem,.8vw + 1.2vh,2.4rem)}
 .discussione .domande{font-size:clamp(1.1rem,.7vw + 1.3vh,2.2rem)}
 .discussione .domande li{margin:0 0 .7em}
-.nota{color:var(--tenue);font-size:.85rem;margin:10px 0 0}
+/* Discussione: guadagno e punti qualità della vita di ogni famiglia */
+.discussione-tabelle{max-width:1100px;margin-top:clamp(12px,1.5vw,28px)}
+.per-turno.turni th,.per-turno.turni td{font-size:clamp(1rem,.6vw + 1vh,1.8rem);padding:8px 4px}
+.per-turno.turni th:first-child{width:40%}
+.turni tr.somma th,.turni tr.somma td{border-top:2px solid var(--riga)}
 .per-turno{width:100%;table-layout:fixed;border-collapse:collapse;height:auto;margin-top:8px;font-variant-numeric:tabular-nums}
 .per-turno th,.per-turno td{padding:5px 2px;text-align:center;border-bottom:1px solid var(--linea);font-size:clamp(.8rem,.45vw + .55vh,1.2rem)}
 .per-turno th{color:var(--tenue);font-weight:600;position:static;background:none}
@@ -198,7 +202,7 @@ dialog .btn.pericolo{color:#B3261E;border-color:#E7B8B4}
 </head>
 <body>
 <header class="testata">
-  <h1>i Giochi delle Banche<small>Tabellone della persona facilitatrice, versione 0.2</small></h1>
+  <h1>i Giochi delle Banche<small>Tabellone della persona facilitatrice, versione 0.3</small></h1>
   <nav aria-label="Sezioni">
     <button data-vista="gioco" aria-current="page">Gioco</button>
     <button data-vista="classifica">Classifica</button>
@@ -251,7 +255,6 @@ dialog .btn.pericolo{color:#B3261E;border-color:#E7B8B4}
     <div class="pannello soldi">
       <h2>Dove sono andati i soldi</h2>
       <div class="scorre"><table class="per-turno raccolta" aria-label="Investimenti e raccolta di ogni banca"><tbody id="raccolta"></tbody></table></div>
-      <p class="nota">Ogni investimento porta 100 € alla banca. Banche in ordine alfabetico.</p>
     </div>
     <div class="azioni">
       <button class="btn" data-azione="esporta">Scarica i risultati (.csv)</button>
@@ -271,6 +274,10 @@ dialog .btn.pericolo{color:#B3261E;border-color:#E7B8B4}
           <li>Come giudichereste una banca che dice con trasparenza dove investe?</li>
           <li>Nella vita reale, cosa possiamo fare perché i risultati vadano a vantaggio di tutte e tutti?</li>
         </ol>
+      </div>
+      <div class="pannello discussione-tabelle">
+        <h2>Chi ha guadagnato e cosa ha dato o tolto alla comunità</h2>
+        <div class="scorre"><table class="per-turno turni" aria-label="Guadagno e punti qualità della vita di ogni famiglia"><tbody id="pqv-famiglie"></tbody></table></div>
       </div>
   </section>
 
@@ -337,11 +344,11 @@ dialog .btn.pericolo{color:#B3261E;border-color:#E7B8B4}
       <ul>
         <li>Se la qualità della vita arriva a zero, compare un avviso: secondo le regole il gioco finisce lì.</li>
         <li>In «Classifica» trovi l'ordine delle famiglie, l'andamento della qualità della vita, le carte uscite e dove sono andati i soldi banca per banca.</li>
-        <li>In «Discussione» trovi le domande da proiettare per il confronto finale.</li>
+        <li>In «Discussione» trovi le domande da proiettare per il confronto finale e, per ogni famiglia, il guadagno e i punti qualità della vita.</li>
         <li>«Scarica i risultati e chiudi la partita» salva i risultati in un file .csv e poi svuota il tabellone per la prossima volta.</li>
       </ul>
 
-      <p class="sotto" style="margin-top:10px">Tabellone versione 0.2, di Fabio Temporiti. Codice EUPL 1.2, testi CC BY-SA 4.0.</p>
+      <p class="sotto" style="margin-top:10px">Tabellone versione 0.3, di Fabio Temporiti. Codice EUPL 1.2, testi CC BY-SA 4.0.</p>
     </article>
     <div class="azioni">
       <button class="btn primario" data-azione="stampa-manuale">Stampa il manuale</button>
@@ -383,9 +390,21 @@ var archivio = (function(){
   try { var k="__prova__"; localStorage.setItem(k,"1"); var ok=localStorage.getItem(k)==="1"; localStorage.removeItem(k); return ok ? localStorage : null; }
   catch(e){ return null; }
 })();
+// una copia di sicurezza arriva da fuori: si tengono solo colori, interessi e carte validi
+function pulisci(p){
+  if(!p || !Array.isArray(p.famiglie) || !p.investimenti || typeof p.investimenti!=="object") throw new Error();
+  var base=partitaNuova();
+  p.famiglie=FAMIGLIE_BASE.map(function(fb,i){ var f=p.famiglie[i]||{};
+    return {nome:String(f.nome||fb[0]), colore:/^#[0-9A-Fa-f]{6}$/.test(f.colore)?f.colore:fb[1], attiva:!!f.attiva}; });
+  Object.keys(p.investimenti).forEach(function(k){ if(!(p.investimenti[k] in CONVERSIONE) || !/^[0-7]-([1-9]|10)$/.test(k)) delete p.investimenti[k]; else p.investimenti[k]=+p.investimenti[k]; });
+  var carteOk={}; Object.keys(p.carte||{}).forEach(function(t){ var l=(Array.isArray(p.carte[t])?p.carte[t]:[p.carte[t]]).filter(function(i){ return Number.isInteger(i) && i>=0 && i<DATI.carte.length; }); if(l.length && +t>=1 && +t<=TURNI) carteOk[+t]=l; });
+  p.carte=carteOk;
+  p.pqvIniziale = Number.isInteger(p.pqvIniziale) && p.pqvIniziale>0 ? p.pqvIniziale : base.pqvIniziale;
+  return p;
+}
 function carica(){
   if(!archivio) return partitaNuova();
-  try { var s=archivio.getItem(CHIAVE); return s ? JSON.parse(s) : partitaNuova(); }
+  try { var s=archivio.getItem(CHIAVE); return s ? pulisci(JSON.parse(s)) : partitaNuova(); }
   catch(e){ return partitaNuova(); }
 }
 var P = carica();
@@ -509,11 +528,24 @@ function raccolta(){
   });
 }
 function disegnaRaccolta(){
-  // in ordine alfabetico: l'ordine per interesse rivelerebbe i rendimenti delle banche
-  var bb=raccolta().slice().sort(function(x,y){ return x.nome.localeCompare(y.nome,"it"); });
+  // dalla banca che ha raccolto di più; a parità, in ordine alfabetico. L'ordine cambia a ogni turno
+  var bb=raccolta().slice().sort(function(x,y){ return y.n-x.n || x.nome.localeCompare(y.nome,"it"); });
   var r1="<tr><th scope='row'>Banca</th>", r2="<tr><th scope='row'>Investimenti</th>", r3="<tr><th scope='row'>Raccolta</th>";
   bb.forEach(function(b){ r1+="<th scope='col'>"+esc(b.nome)+"</th>"; r2+="<td>"+b.n+"</td>"; r3+="<td>"+(b.n*100)+" €</td>"; });
   document.getElementById("raccolta").innerHTML = r1+"</tr>"+r2+"</tr>"+r3+"</tr>";
+}
+// vista Discussione: per ogni famiglia quanto ha guadagnato e quanti punti qualità della vita ha dato o tolto alla comunità
+function cellaPqv(n){ return "<td class='pqv "+(n===0?"":(n<0?"neg":"pos"))+"'>"+segno(n)+"</td>"; }
+function disegnaDiscussione(){
+  var h="<tr><th scope='col'>Famiglia</th><th scope='col'>Guadagno</th><th scope='col'>Punti qualità della vita</th></tr>", tot=0;
+  attive().forEach(function(f){
+    var n=0; for(var t=1;t<=TURNI;t++){ var e=inv(f,t); if(e!==null) n+=CONVERSIONE[e]; }
+    tot+=n; h+="<tr><th scope='row'><span class='chip' style='background:"+P.famiglie[f].colore+"'></span>"+esc(P.famiglie[f].nome)+"</th><td>"+totaleFamiglia(f).totale+" €</td>"+cellaPqv(n)+"</tr>";
+  });
+  var imp=0; for(var t2=1;t2<=TURNI;t2++) imp+=pqvCarte(t2);
+  h+="<tr><th scope='row'>Imprevisti</th><td></td>"+cellaPqv(imp)+"</tr>";
+  h+="<tr class='somma'><th scope='row'>Comunità</th><td></td>"+cellaPqv(tot+imp)+"</tr>";
+  document.getElementById("pqv-famiglie").innerHTML=h;
 }
 // promemoria delle regole del kit per il turno da giocare
 function disegnaFase(){
@@ -527,7 +559,7 @@ function disegnaFase(){
   if(t<5 && v<=P.pqvIniziale*0.25) testo+=" La qualità della vita è bassa: si può anticipare il confronto tra le famiglie.";
   document.getElementById("fase").innerHTML="<b>Turno "+t+":</b> "+esc(testo);
 }
-function tutto(){ disegnaTabellone(); disegnaTermometro(); disegnaClassifica(); disegnaRaccolta(); disegnaFase(); }
+function tutto(){ disegnaTabellone(); disegnaTermometro(); disegnaClassifica(); disegnaRaccolta(); disegnaDiscussione(); disegnaFase(); }
 function esc(s){ return String(s).replace(/[&<>'"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]; }); }
 
 // ---- carte ----
@@ -588,7 +620,7 @@ document.addEventListener("change", function(ev){
   } else if(el.id==="file-copia" && el.files[0]){
     var lettore=new FileReader();
     lettore.onload=function(){
-      try { var p=JSON.parse(lettore.result); if(!p.famiglie||!p.investimenti) throw new Error();
+      try { var p=pulisci(JSON.parse(lettore.result));
         if(confirm("Sostituire la partita attuale con quella della copia?")){ P=p; salva(); disegnaImpostazioni(); tutto(); } }
       catch(e){ alert("Il file scelto non è una copia di sicurezza di questo tabellone."); }
       el.value="";

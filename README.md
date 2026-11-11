@@ -4,7 +4,7 @@ Tabellone per chi facilita «i Giochi delle Banche», il gioco di educazione cri
 
 Il tabellone è pensato per la **versione v2 del gioco**, la seconda edizione del 2024 di edizioni la meridiana, con 20 carte imprevisto. Con edizioni precedenti carte ed effetti potrebbero non corrispondere.
 
-Tabellone versione 0.2, di Fabio Temporiti. Basato sul foglio di calcolo versione 4.0.
+Tabellone versione 0.3, di Fabio Temporiti. Basato sul foglio di calcolo versione 4.0.
 
 ## Cosa fa
 
@@ -12,7 +12,7 @@ Tabellone versione 0.2, di Fabio Temporiti. Basato sul foglio di calcolo version
 - **Imprevisti**: si sceglie la carta pescata dal suo titolo e dalla sua frase, anche più carte nello stesso turno. Euro e punti vengono applicati a ogni famiglia in base alla banca scelta.
 - **Promemoria dei turni**: sopra la tabella ricorda cosa prevede il turno, dalle domande alle banche agli spot fino alla strategia comune.
 - **Classifica**: ordine delle famiglie, termometro e andamento della qualità della vita, carte uscite e dove sono andati i soldi banca per banca.
-- **Discussione**: le domande per il confronto finale, in un tab a parte e in caratteri grandi da proiettare.
+- **Discussione**: le domande per il confronto finale, in caratteri grandi da proiettare, e per ogni famiglia il guadagno e i punti qualità della vita, aggiornati a ogni turno.
 - **Salvataggio**: la partita si salva nel browser a ogni scelta, si può scaricare una copia di sicurezza e alla fine i risultati in un file .csv.
 - **Proiezione**: si adatta a qualsiasi dimensione della finestra e ha il pulsante «Schermo intero».
 
@@ -35,7 +35,7 @@ Mettilo in una cartella dove resterà, per esempio i documenti del computer che 
 3. **Proietta** con il pulsante «Schermo intero» in alto, oppure con F11.
 4. **A ogni turno**, quando una famiglia torna dalla banca, clicca la sua casella e scegli l'interesse scritto sulla scheda investimento. Sopra la tabella un promemoria ricorda cosa prevede il turno.
 5. **Imprevisti**: nella riga «Imprevisto» clicca il riquadro del turno e scegli la carta pescata. Per più carte nello stesso turno clicca di nuovo e scegli «Aggiungi un'altra carta».
-6. **Fine partita**: in «Classifica» trovi risultati, grafico e dove sono andati i soldi, in «Discussione» le domande per il confronto finale. «Scarica i risultati e chiudi la partita» salva un file .csv e svuota il tabellone per la volta successiva.
+6. **Fine partita**: in «Classifica» trovi risultati, grafico e dove sono andati i soldi, in «Discussione» le domande per il confronto finale e il guadagno e i punti qualità della vita di ogni famiglia. «Scarica i risultati e chiudi la partita» salva un file .csv e svuota il tabellone per la volta successiva.
 
 **Se il browser si chiude per sbaglio** la partita non si perde: si salva da sola a ogni scelta. Riapri **lo stesso file con lo stesso browser** e la ritrovi. Non si ritrova se apri il file con un altro browser, se lo sposti o rinomini durante la partita, o se usi una finestra privata. Per sicurezza, a metà partita premi «Scarica copia di sicurezza» in «Famiglie e partita».
 
